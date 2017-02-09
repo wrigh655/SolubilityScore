@@ -1,0 +1,22 @@
+<ROSETTASCRIPTS>
+        <SCOREFXNS>
+        </SCOREFXNS>
+        <RESIDUE_SELECTORS>
+            <Index name="resindex" resnums="1A-262A"/>
+        </RESIDUE_SELECTORS>
+        <TASKOPERATIONS>
+            <ReadResfile name="resfile" selector="resindex" />
+        </TASKOPERATIONS>
+        <FILTERS>
+            <AverageDegree name="cn" threshold="0" distance_threshold="10.0" task_operations="resfile"/>
+        </FILTERS>
+        <MOVERS>
+            <Dssp name="dssp"/>
+        </MOVERS>
+        <APPLY_TO_POSE>
+        </APPLY_TO_POSE>
+        <PROTOCOLS>
+             <Add mover="dssp"/>
+             <Add filter="cn"/>
+        </PROTOCOLS>
+</ROSETTASCRIPTS>
