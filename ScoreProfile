@@ -1,28 +1,42 @@
 #!/bin/bash -login
  
-#PBS -l walltime=00:45:00
-#PBS -l nodes=1:ppn=4 
-#PBS -l mem=50gb
+#PBS -l walltime=05:00:00
+#PBS -l nodes=1:ppn=10 
+#PBS -l mem=80gb
 #PBS -j oe
-#PBS -N single_muscle
+#PBS -N directory_muscle
  
 ### load necessary modules, e.g.
 module load MUSCLE
 module load BLAST+
 module load CDHIT
+
+### make necessary directorys for file storage
+	#mkdir /mnt/home/wrigh655/Documents/KiVD/fastafiles
+	#mkdir /mnt/home/wrigh655/Documents/KiVD/blastpresults
+	#mkdir /mnt/home/wrigh655/Documents/KiVD/CDHITs
+	#mkdir /mnt/home/wrigh655/Documents/KiVD/MUSLCEreulsts
+	#mkdir /mnt/home/wrigh655/Documents/KiVD/PSSMs
  
-### change to the working directory where your code is located
-cd /mnt/home/wrigh655/Documents/KiVD/1OVM_D
+#Command to run all files in fasta database
+#numfiles=(*)
+#numfiles=${#numfiles[@]}
+ #for ((i=0;i<numfiles;i++))
+#do
 
-### run blast p
-blastp -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/blastp
+	### change to the working directory where your code is located
+	cd /mnt/home/wrigh655/Documents/KiVD/fastafiles
 
-### run CD-HIT
-cd-hit -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/CD_Hit
 
-### run MUSCLE
-muscle -in 1OVM_CDHIT -out /mnt/home/wrigh655/Documents/KiVD/1OVM_D/MSA_1OVM.fasta  
+	### run blast p
+	blastp -query /mnt/home/wrigh655/Documents/KiVD/1OZF.fasta -db nr -evalue 0.0001 -max_target_seqs 20000 -out /mnt/home/wrigh655/Documents/KiVD/blastpresults/1OZF_blast.fasta 
 
-### run PSI-BLAST
-psiblast -subject /mnt/home/wrigh655/Documents/KiVD/1OVM_D/1OVM_D_native.fasta -in_msa /mnt/home/wrigh655/Documents/KiVD/1OVM_D/MSA_1OVM.fasta -out_ascii_pssm /mnt/home/wrigh655/Documents/KiVD/1OVM_D/PSSM_1OVM.pssm > 1OVMpssm.log
+	### run CD-HIT
+	cd-hit -i /mnt/home/wrigh655/Documents/KiVD/blastpresults/1OZF_blast.fasta -o /mnt/home/wrigh655/Documents/KiVD/CDHITs/CD_Hit_1OZF.fasta
 
+	### run MUSCLE
+	muscle -in /mnt/home/wrigh655/Documents/KiVD/CDHITs/CD_Hit_1OZF.fasta -out /mnt/home/wrigh655/Documents/KiVD/MUSCLEresults/MSA_1OZF.fasta  
+
+	### run PSI-BLAST
+	psiblast -subject /mnt/home/wrigh655/Documents/KiVD/fastafiles/1OZF -in_msa /mnt/home/wrigh655/Documents/KiVD/MUSCLEresults/MSA_1OZF.fasta -out_ascii_pssm /mnt/home/wrigh655/Documents/KiVD/PSSMs/PSSM_1OZF.pssm > 1OZF_pssm.log
+#done
