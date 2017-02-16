@@ -1,19 +1,28 @@
 #!/bin/bash -login
  
-#PBS -l walltime=01:00:00 nodes:1:ppn:4
-#PBS -l mem= 1gb
+#PBS -l walltime=00:45:00
+#PBS -l nodes=1:ppn=4 
+#PBS -l mem=50gb
 #PBS -j oe
 #PBS -N single_muscle
  
 ### load necessary modules, e.g.
 module load MUSCLE
 module load BLAST+
+module load CDHIT
  
 ### change to the working directory where your code is located
-cd /mnt/home/wrigh655/programs/NCBI_BLAST
-#./blastp -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/blastp
-#./cd-hit -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/CD_Hit
-muscle -in /mnt/home/wrigh655/Documents/KiVD/1OVM_D/1OVM_CDHIT -out /mnt/home/wrigh655/Documents/KiVD/1OVM_D/MSA_1OVM.fasta  
+cd /mnt/home/wrigh655/Documents/KiVD/1OVM_D
 
+### run blast p
+blastp -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/blastp
 
+### run CD-HIT
+cd-hit -in /mnt/home/wrigh655/Documents/KiVD/fasta -out /mnt/home/wrigh655/Documents/KiVD/CD_Hit
+
+### run MUSCLE
+muscle -in 1OVM_CDHIT -out /mnt/home/wrigh655/Documents/KiVD/1OVM_D/MSA_1OVM.fasta  
+
+### run PSI-BLAST
 psiblast -subject /mnt/home/wrigh655/Documents/KiVD/1OVM_D/1OVM_D_native.fasta -in_msa /mnt/home/wrigh655/Documents/KiVD/1OVM_D/MSA_1OVM.fasta -out_ascii_pssm /mnt/home/wrigh655/Documents/KiVD/1OVM_D/PSSM_1OVM.pssm > 1OVMpssm.log
+
