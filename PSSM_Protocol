@@ -1,0 +1,111 @@
+PSSM Score Protocol:
+
+*There are many different ways to do the procedure described below and specifically each person will have a different path to their files and directories, therefore it is not recommended to copy and paste the command lines into your own terminal. 
+
+Start with .pdb file of known structure (if structure unknown then homology model needs to be created)
+Convert .pdb to fasta format using pyMol command line:
+
+load 1hpv_A.pdb
+save 1hpv_A.fasta, chain A
+
+Blastp the fasta sequence using 20,000 results and download the output as a fasta file (complete sequences).
+Go to CD-Hit (http://weizhongli-lab.org/cdhit_suite/cgi-bin/index.cgi?cmd=cd-hit) and input sequence.  You can also (recommended download and use CD-hit locally, though it requires your compiler to be gcc vs. clang)
+Keep standard Parameters
+Submit Job and download fas.1 output file (this is the clustering that you want) not the cluster file.
+Open terminal.
+Go to MUSCLE (http://www.drive5.com/muscle/manual/install.html) download the exe file
+Find the folder you put MUSCLE in and run the command line:
+
+./MUSCLE -in /Users/wright/Documents/Scoring/KiVD/1OVM_D/CDHIT1OVM -out MSA_for_1OVM.afa  –maxiters 1
+
+This creates your Multiple Sequence Alignment.
+Navigate to the bin in your NCBI Blast Suite (helpful if MUSCLE is in the same directory)
+You can download the NCBI Blast suite here (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+Now you will PSI-BLAST your MSA against your original PDB.fasa sequence using this command line:
+
+./psiblast -subject /Users/wright/Documents/Scoring/KiVD/ZP_08570611/ZP_08570611.fasta -in_msa /Users/wright/Lab/NCBI_BLAST/MSA_files/MSA_for_ZP_08570611 -msa_master_idx 1 -out_ascii_pssm PSSM_ZP_08570611subject.pssm > ZP_08570611pssm.log
+
+Then look in the directory to see the output file VM1.pssm you created. You should be able to open it in a text editor and transfer it to excel. You will need to transfer its extension to .txt to put in excel.
+Next you will calculate distance to active site. To do this you need to run 
+
+grep "CA" 1OVM_D_native.pdb > coords1OVM.txt
+
+This will give you coordinates to all of the residues. You will need to define an active site and use the Euclidean distance formula to find the distance. This can all be done in excel. 
+The next thing needed is to find the contact number and Secondary Structure for each protein. To do this we will run a rosetta_script. If you are unsure of what that is, consult a lab mate. 
+Make a folder in protocols for your project and create a rosetta script there. 
+In order to pull the pdb files from a local location you will need to include the path.
+Run the script using the command:
+bin/rosetta_scripts.default.macosclangdebug -database /Users/trey-m-fb-wright/Rosetta/main/database -parser:protocol /Users/trey-m-fb-wright/Rosetta/main/source/src/protocols/KIVD_scoring/KIVD_script2.xml  -s /Users/trey-m-fb-wright/Documents/Scoring/KiVD/ZP_08570611/ZP_08570611_native.pdb -ignore_unrecognized_res -ex1 -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ -out:overwrite > ZP_08570611script.csv
+
+This will spit the output into your script file. Make sure you are keeping track of where all of these files are located so you can alter your command line paths as needed.
+
+Open the 1OVMscript.csv file and find the DSSP section of the output. Copy this and paste it in a new text file named DSSP_10VM.txt
+
+You will need to run the command:
+
+sed 's/./& /g' DSSP_1OVM.txt
+
+This will break up the letters of the DSSP in order to import them into excel. Copy and paste them into excel.
+H-Lookup function in excel is used to pull the PSSM value for each amino acid.
+Next we want to pull the contact number from the rosetta script file. Copy and paste this part of the output into the DSSP file. 
+Then use the command:
+
+perl -pe 's/.* (\d+\.*\d*).*/$1/' cn1OVM.txt > cn1OVM2.txt
+
+This will leave only the contact numbers. Which can be copy and pasted over. 
+The next piece is to find the distance to active site. To do this, we will pull the coordinates from the pdb file for the backbone of the C-alpha position using grep.
+These will be exported to excel.
+You will also need to pull the coordinates of the ligand. 
+Use the Euclidean distance formula in order to find the distance of each atom of the ligand to each residue on the backbone using a table in excel.
+Use the Min command in order to find the minimum distance for each residue.
+
+
+
+
+
+Common Command Lines:
+
+Use PSI-BLAST+ to generate PSSM from Multiple Sequence Alignment:
+./psiblast -subject /Users/wright//Documents/Scoring/KiVD/1OVM_D/1OVM_D_native.fasta -in_msa /Users/wright/Documents/Scoring/KiVD/1OVMMSA.fasta -out_ascii_pssm VM1.pssm > VM1pssm.log
+
+Run the Rosetta Script for KiVD protocol in Rosetta:
+bin/rosetta_scripts.default.macosclangdebug -database /Users/wright/Rosetta/main/database -parser:protocol /Users/trey-m-fb-wright/Rosetta/main/source/src/protocols/KIVD_scoring/KIVD_script2.xml  -s 1OVM.pdb -ignore_unrecognized_res -ex1 -ex2 -use_input_sc -no_his_his_pairE -no_optH false -flip_HNQ –out:overwrite
+
+Rewrite old Rosetta Scripts:
+python /Users/wright/Rosetta/tools/xsd_xrw/rewrite_rosetta_script.py --input /Users/wright/Rosetta/main/source/src/protocols/KIVD_scoring/KIVD_script.xml --output /Users/wright/Rosetta/main/source/src/protocols/KIVD_scoring/KIVD_script2.xml
+
+Multi-Line Fasta to Single Line:
+awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < file.fa
+
+To Breakup DSSP with spaces for excel import:
+sed 's/./& /g' DSSP_1OVM.txt
+
+To Retrieve just the contact number from the R-Script output:
+perl -pe 's/.* (\d+\.*\d*).*/$1/' cn1OVM.txt > cn1OVM2.txt
+
+Instructions for different software:
+
+CD-HIT
+CD-HIT clusters proteins into clusters that meet a user-defined similarity threshold, usually a sequence identity. Each cluster has one representative sequence. The input is a protein dataset in fasta format and the output are two files: a fasta file of representative sequences and a text file of list of clusters.
+Basic command:
+cd-hit -i nr -o nr100 -c 1.00 -n 5 -M 16000 –d 0 -T 8
+cd-hit -i db -o db90 -c 0.9 -n 5 -M 16000 –d 0 -T 8, 
+where
+db is the filename of input, 
+db90 is output, 
+-c 1.0, means 100% identity, is the clustering threshold
+-c 0.9, means 90% identity, is the clustering threshold
+-n 5 is the word size
+-d 0 use sequence name in fasta header till the first white space
+-M 16000, to use 16GB RAM
+-T 8, to use 8 threads
+Choose of word size:
+-n 5 for thresholds 0.7 ~ 1.0
+-n 4 for thresholds 0.6 ~ 0.7
+-n 3 for thresholds 0.5 ~ 0.6
+-n 2 for thresholds 0.4 ~ 0.5
+Complete options:
+
+
+
+
